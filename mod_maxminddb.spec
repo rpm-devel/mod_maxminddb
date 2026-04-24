@@ -1,8 +1,8 @@
 %define realname mod_maxminddb
-%define realver  1.1.0
+%define realver  1.3.0
 %define srcext   tar.gz
 
-# turn off the generation of debuginfo rpm  (RH9) ??
+# turn off the generation of debuginfo rpm
 %global debug_package %{nil}
 
 %if 0%{?suse_version}
@@ -22,7 +22,6 @@ Name:          %{realname}
 Version:       %{realver}
 Release:       1.72%{?dist}
 License:       Apache-2.0
-Group:         Productivity/Networking/Web/Servers
 URL:           http://maxmind.github.io/mod_maxminddb/
 Summary:       MaxMind DB Apache Module
 
@@ -33,14 +32,13 @@ BuildRequires: apache2-devel
 %else
 BuildRequires: httpd-devel
 %endif
-BuildRoot:     %{_tmppath}/%{name}-root
 Source:        https://github.com/maxmind/%{realname}/releases/download/%{version}/%{realname}-%{version}%{?extraver}.%{srcext}
 
 %description
 This module allows you to query MaxMind DB files from Apache 2.2+ using
 the libmaxminddb library.
 
-# Preparation step (unpackung and patching if necessary)
+# Preparation step (unpacking and patching if necessary)
 %prep
 %setup -q -n %{realname}-%{version}%{?extraver}
 
@@ -54,14 +52,14 @@ export PATH=${PATH}:/sbin:/usr/sbin
 %install
 %{__install} -D -m755 src/.libs/%{realname}.so %{buildroot}%{MOD_DIR}/%{realname}.so
 
-%clean
-[ "%{buildroot}" != "/" ] && %{__rm} -rf %{buildroot}
-
 %files
-%defattr(-,root,root)
 %doc LICENSE README.md
 %{MOD_DIR}/%{realname}.so
 
 %changelog
+* Fri Apr 24 2026 CasjaysDev <rpm-devel@casjaysdev.pro> - 1.3.0-1
+- Update to 1.3.0
+- Modernize spec for AlmaLinux 10; remove BuildRoot, Group, %clean, %defattr
+
 * Tue Dec 20 2016 aevseev@gmail.com
 - New upstream version - 1.1.0
