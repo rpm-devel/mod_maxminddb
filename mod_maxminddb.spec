@@ -1,6 +1,6 @@
-%define realname mod_maxminddb
-%define realver  1.3.0
-%define srcext   tar.gz
+%global realname mod_maxminddb
+%global realver  1.3.0
+%global srcext   tar.gz
 
 # turn off the generation of debuginfo rpm
 %global debug_package %{nil}
@@ -11,7 +11,7 @@
 %define APXS apxs
 %endif
 
-%define MOD_DIR %(%{APXS} -q LIBEXECDIR)
+%global MOD_DIR %(%{APXS} -q LIBEXECDIR)
 
 # Common info
 %if 0%{?suse_version}
@@ -57,6 +57,9 @@ export PATH=${PATH}:/sbin:/usr/sbin
 %{MOD_DIR}/%{realname}.so
 
 %changelog
+* Fri May 22 2026 CasjaysDev <rpm-devel@casjaysdev.pro> - 1.3.0-1
+- Fix spec violations: %global for constants, use %{buildroot}
+
 * Fri Apr 24 2026 CasjaysDev <rpm-devel@casjaysdev.pro> - 1.3.0-1
 - Update to 1.3.0
 - Modernize spec for AlmaLinux 10; remove BuildRoot, Group, %clean, %defattr
