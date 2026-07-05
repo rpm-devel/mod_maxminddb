@@ -2,61 +2,52 @@
 %global realver  1.3.0
 %global srcext   tar.gz
 
-# turn off the generation of debuginfo rpm
 %global debug_package %{nil}
 
-%if 0%{?suse_version}
-%define APXS apxs2
-%else
-%define APXS apxs
-%endif
+%global MOD_DIR %(apxs -q LIBEXECDIR)
 
-%global MOD_DIR %(%{APXS} -q LIBEXECDIR)
-
-# Common info
-%if 0%{?suse_version}
-Name:          apache2-%{realname}
-%else
 Name:          %{realname}
-%endif
 Version:       %{realver}
-Release:       1.72%{?dist}
+Release:       1%{?dist}
 License:       Apache-2.0
-URL:           http://maxmind.github.io/mod_maxminddb/
+URL:           https://maxmind.github.io/mod_maxminddb/
+ExclusiveArch: x86_64 aarch64
 Summary:       MaxMind DB Apache Module
+Source:        https://github.com/maxmind/%{realname}/releases/download/%{version}/%{realname}-%{version}.%{srcext}
 
-# Build-time parameters
 BuildRequires: libmaxminddb-devel
-%if 0%{?suse_version}
-BuildRequires: apache2-devel
-%else
 BuildRequires: httpd-devel
-%endif
-Source:        https://github.com/maxmind/%{realname}/releases/download/%{version}/%{realname}-%{version}%{?extraver}.%{srcext}
 
 %description
 This module allows you to query MaxMind DB files from Apache 2.2+ using
 the libmaxminddb library.
 
-# Preparation step (unpacking and patching if necessary)
 %prep
-%setup -q -n %{realname}-%{version}%{?extraver}
+%autosetup -p1 -n %{realname}-%{version}
 
 %build
 export PATH=${PATH}:/sbin:/usr/sbin
 %configure \
  CFLAGS="%{optflags}" \
  LDFLAGS="-Wl,--as-needed -Wl,--strip-all"
-%{__make} %{?_smp_mflags}
+%make_build
 
 %install
-%{__install} -D -m755 src/.libs/%{realname}.so %{buildroot}%{MOD_DIR}/%{realname}.so
+install -D -m755 src/.libs/%{realname}.so %{buildroot}%{MOD_DIR}/%{realname}.so
 
 %files
-%doc LICENSE README.md
+%license LICENSE
+%doc README.md
 %{MOD_DIR}/%{realname}.so
 
 %changelog
+* Sat Jul 05 2026 CasjaysDev <rpm-devel@casjaysdev.pro> - 1.3.0-1
+- URL: http→https; remove OpenSUSE conditionals; fix Release tag; install macro
+- Source0 verified 302→200; 1.3.0 is current
+
+* Thu Jul 03 2026 CasjaysDev <rpm-devel@casjaysdev.pro> - 1.3.0-1
+- Add ExclusiveArch: x86_64 aarch64; %%autosetup -p1; %%make_build; %%license LICENSE
+
 * Fri May 22 2026 CasjaysDev <rpm-devel@casjaysdev.pro> - 1.3.0-1
 - Fix spec violations: %global for constants, use %{buildroot}
 
