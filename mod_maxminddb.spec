@@ -6,6 +6,12 @@
 
 %global MOD_DIR %(apxs -q LIBEXECDIR)
 
+%if 0%{?suse_version}
+%global httpd_devel_pkg apache2-devel
+%else
+%global httpd_devel_pkg httpd-devel
+%endif
+
 Name:          %{realname}
 Version:       %{realver}
 Release:       1%{?dist}
@@ -16,7 +22,7 @@ Summary:       MaxMind DB Apache Module
 Source:        https://github.com/maxmind/%{realname}/releases/download/%{version}/%{realname}-%{version}.%{srcext}
 
 BuildRequires: libmaxminddb-devel
-BuildRequires: httpd-devel
+BuildRequires: %{httpd_devel_pkg}
 
 %description
 This module allows you to query MaxMind DB files from Apache 2.2+ using
@@ -41,6 +47,13 @@ install -D -m755 src/.libs/%{realname}.so %{buildroot}%{MOD_DIR}/%{realname}.so
 %{MOD_DIR}/%{realname}.so
 
 %changelog
+* Sat Jul 05 2026 CasjaysDev <rpm-devel@casjaysdev.pro> - 1.3.0-1
+- Guard httpd-devel BuildRequires: openSUSE/SLES use apache2-devel, not
+  httpd-devel; added %%if 0%%{?suse_version} conditional via %%httpd_devel_pkg.
+  Verified libmaxminddb-devel is named identically on openSUSE (no guard
+  needed); ExclusiveArch already correct, no stray BuildArch/noarch found,
+  no EL7 macro gaps found
+
 * Sat Jul 05 2026 CasjaysDev <rpm-devel@casjaysdev.pro> - 1.3.0-1
 - URL: http→https; remove OpenSUSE conditionals; fix Release tag; install macro
 - Source0 verified 302→200; 1.3.0 is current
