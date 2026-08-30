@@ -21,6 +21,7 @@ ExclusiveArch: x86_64 aarch64
 Summary:       MaxMind DB Apache Module
 Source:        https://github.com/maxmind/%{realname}/releases/download/%{version}/%{realname}-%{version}.%{srcext}
 
+BuildRequires: gcc, make
 BuildRequires: libmaxminddb-devel
 BuildRequires: %{httpd_devel_pkg}
 
