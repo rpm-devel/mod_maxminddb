@@ -4,17 +4,21 @@
 
 %global debug_package %{nil}
 
-%global MOD_DIR %(apxs -q LIBEXECDIR)
-
 %if 0%{?suse_version}
 %global httpd_devel_pkg apache2-devel
+%global httpd_pkg apache2
+%global httpd_moddir %{_libdir}/apache2
 %else
 %global httpd_devel_pkg httpd-devel
+%global httpd_pkg httpd
+%{!?_httpd_moddir: %global _httpd_moddir %{_libdir}/httpd/modules}
+%global httpd_moddir %{_httpd_moddir}
+%{!?_httpd_mmn: %global _httpd_mmn %(cat %{_includedir}/httpd/.mmn 2>/dev/null || echo 0-0)}
 %endif
 
 Name:          %{realname}
 Version:       %{realver}
-Release:       1%{?dist}
+Release:       4%{?dist}
 License:       Apache-2.0
 URL:           https://maxmind.github.io/mod_maxminddb/
 ExclusiveArch: x86_64 aarch64
@@ -24,6 +28,11 @@ Source:        https://github.com/maxmind/%{realname}/releases/download/%{versio
 BuildRequires: gcc, make
 BuildRequires: libmaxminddb-devel
 BuildRequires: %{httpd_devel_pkg}
+%if 0%{?suse_version}
+Requires:      %{httpd_pkg}
+%else
+Requires:      httpd-mmn = %{_httpd_mmn}
+%endif
 
 %description
 This module allows you to query MaxMind DB files from Apache 2.2+ using
@@ -34,32 +43,43 @@ the libmaxminddb library.
 
 %build
 export PATH=${PATH}:/sbin:/usr/sbin
+apxs_ldflags=$(printf '%s\n' '%{?build_ldflags}' | tr ' ' '\n' | grep '^-Wl,' | tr '\n' ' ')
 %configure \
  CFLAGS="%{optflags}" \
- LDFLAGS="-Wl,--as-needed -Wl,--strip-all"
+ LDFLAGS="$apxs_ldflags -Wl,--as-needed"
 %make_build
 
 %install
-install -D -m755 src/.libs/%{realname}.so %{buildroot}%{MOD_DIR}/%{realname}.so
+install -D -m755 src/.libs/%{realname}.so %{buildroot}%{httpd_moddir}/%{realname}.so
 
 %files
 %license LICENSE
 %doc README.md
-%{MOD_DIR}/%{realname}.so
+%{httpd_moddir}/%{realname}.so
 
 %changelog
-* Sat Jul 05 2026 CasjaysDev <rpm-devel@casjaysdev.pro> - 1.3.0-1
+* Tue Sep 29 2026 CasjaysDev <rpm-devel@casjaysdev.pro> - 1.3.0-4
+- Preserve RPM linker flags accepted by apxs and filter compiler-only options
+
+* Mon Sep 28 2026 CasjaysDev <rpm-devel@casjaysdev.pro> - 1.3.0-2
+- Use distro-specific Apache module directories without executing apxs during
+  spec parsing
+- Require the matching Apache runtime package or httpd module magic number
+- Preserve RPM linker hardening flags instead of stripping the module at link
+  time
+
+* Sun Jul 05 2026 CasjaysDev <rpm-devel@casjaysdev.pro> - 1.3.0-1
 - Guard httpd-devel BuildRequires: openSUSE/SLES use apache2-devel, not
   httpd-devel; added %%if 0%%{?suse_version} conditional via %%httpd_devel_pkg.
   Verified libmaxminddb-devel is named identically on openSUSE (no guard
   needed); ExclusiveArch already correct, no stray BuildArch/noarch found,
   no EL7 macro gaps found
 
-* Sat Jul 05 2026 CasjaysDev <rpm-devel@casjaysdev.pro> - 1.3.0-1
+* Sun Jul 05 2026 CasjaysDev <rpm-devel@casjaysdev.pro> - 1.3.0-1
 - URL: http→https; remove OpenSUSE conditionals; fix Release tag; install macro
 - Source0 verified 302→200; 1.3.0 is current
 
-* Thu Jul 03 2026 CasjaysDev <rpm-devel@casjaysdev.pro> - 1.3.0-1
+* Fri Jul 03 2026 CasjaysDev <rpm-devel@casjaysdev.pro> - 1.3.0-1
 - Add ExclusiveArch: x86_64 aarch64; %%autosetup -p1; %%make_build; %%license LICENSE
 
 * Fri May 22 2026 CasjaysDev <rpm-devel@casjaysdev.pro> - 1.3.0-1
